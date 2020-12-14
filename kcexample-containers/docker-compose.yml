@@ -1,0 +1,70 @@
+# Creado por Alvaro Araya 2020-04-20
+# Revisión 1.0
+version: "3.7"
+
+services:
+  ## POSTGRESQL ##
+  postgres:
+    container_name: postgres_container_kcexample
+    image: postgres
+    environment:
+      POSTGRES_USER: kcexample_root
+      POSTGRES_PASSWORD: pwd_Werar7Oic4
+      POSTGRES_DB: kcexampledb
+    ports:
+      - "5432:5432"
+    volumes:
+      - "postgres-data:/var/lib/postgresql/data/"
+    networks:
+      - kcexample-net
+    restart: always
+
+  ## PGADMIN ##
+  pgadmin:
+    container_name: pgadmin4_container_kcexample
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@kcexample.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-Werar7Oic4}
+    volumes:
+      - "pgadmin-data:/root/.pgadmin"
+    ports:
+      - "5454:80"
+    networks:
+      - kcexample-net
+    restart: always
+    depends_on:
+      - postgres
+
+  ## KEYCLOAK ##
+  keycloak:
+    container_name: keycloak_container_kcexample
+    image: quay.io/keycloak/keycloak:latest
+    environment:
+      DB_VENDOR: postgres
+      DB_ADDR: postgres_container_kcexample
+      DB_PORT: 5432
+      DB_DATABASE: kcexampledb
+      DB_SCHEMA: public
+      DB_USER: kcexample_root
+      DB_PASSWORD: pwd_Werar7Oic4
+      KEYCLOAK_USER: kc_admin
+      KEYCLOAK_PASSWORD: kc_Werar7Oic4
+      # JDBC_PARAMS: "ssl=true"
+    ports:
+      - "9090:8080"
+    networks:
+      - kcexample-net
+    restart: always
+    depends_on:
+      - pgadmin
+
+networks:
+  kcexample-net:
+    driver: bridge
+
+volumes:
+  postgres-data:
+    driver: local
+  pgadmin-data:
+    driver: local
